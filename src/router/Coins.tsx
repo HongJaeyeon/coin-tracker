@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
+import { useQuery } from "react-query";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { fetchCoins } from "../api";
 
 function Coins(){
 
@@ -58,34 +60,27 @@ function Coins(){
       margin-right: 15px;
   `;
 
-  interface CoinsInterface {
+  interface ICoin {
     id: string;
     name: string;
     symbol: string;
   };
 
-  const [loading, setLoading] = useState(true);
-  const [coins, setCoins] = useState<CoinsInterface[]>([]);
-  // ts는 coins가 언제가 빈 array일거라 생각해서 data의 형식을 그냥 쓰면 error일으킴 언젠간 이런 형식의 데이터가 넣어질 거란 정의.
-  // 뿐만아니라 coins자체가 array일거라는 정의도 해줘야함. 왜냐면 map을 그냥 돌리면 초기엔 [] 빈 리스트이기때문에 undefined라고 인식. -> ts덕분..
+  const {isLoading, data} = useQuery<ICoin[]>("allCoins",fetchCoins);
 
-  const getData = async() => {
-    const json = await(await fetch('https://api.coinpaprika.com/v1/coins')).json();
-    setCoins(json.slice(0,100));
-    setLoading(false);
-  };
-
-  useEffect(()=>{getData()},[]);
-
-  // console.log(coins);
   return(
     <Container>
+      <Helmet>
+      <title>
+        Coins
+      </title>
+    </Helmet>
       <Header>
         <Title>
           Coins
         </Title>
       </Header>
-      { loading ? <Loader>loading...</Loader> : <CoinsList>{coins.map( coin => (<Coin key={coin.id}><Link to={{
+      { isLoading ? <Loader>loading...</Loader> : <CoinsList>{data?.slice(0,100).map( coin => (<Coin key={coin.id}><Link to={{
         pathname: `/${coin.id}`,
         state: {name: coin.name}
         }}><Img src ={`https://cryptoicon-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`}></Img>{coin.name} &rarr;</Link></Coin>))}</CoinsList>}

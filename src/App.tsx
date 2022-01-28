@@ -1,4 +1,5 @@
 import { createGlobalStyle } from "styled-components";
+import { ReactQueryDevtools } from "react-query/devtools";
 import Router from "./Router";
 const GlobalStyle = createGlobalStyle`
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -67,6 +68,7 @@ function App() {
     <>
       <GlobalStyle/>
       <Router/>
+      <ReactQueryDevtools initialIsOpen={true} />
     </>
     //fragment 고스트 컴포넌트. div같은 불필요한 태그 없이 두개를 동시에 return할 수 있다
   );

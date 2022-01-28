@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
+import { useQuery } from "react-query";
 import { useRouteMatch, Link, Switch, Route, useLocation, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { fetchInfo, fetchPrice } from "../api";
 import Chart from "./Chart";
 import Price from "./Price";
 
@@ -146,31 +148,26 @@ interface IPrice{
 }
 
 function Coin(){
-  const { state } = useLocation<StateInterface>();
-  const { coinId } = useParams<ParamsInterface>();
-  const [loading, setLoading] = useState(true);
-  //coinId 찍어보면 object안에 있어서 이렇게 받아옴
-  //useParams가 지금은 아무것도 안가져오지만 언젠가 가져오는 데이터가 coinId이고 그 값의 타입은 string이라고 ts에게 말해주기위해
-  const [info, setInfo] = useState<IInfo>();
-  const [price, setPrice] = useState<IPrice>();
+  const { state } = useLocation<StateInterface>(); //이전 url에서 state받아옴
+  const { coinId } = useParams<ParamsInterface>(); //현재 url의 '/~~' 정보 (여기에선 coinID)
   const priceMatch = useRouteMatch("/:coinId/price");
   const chartMatch = useRouteMatch("/:coinId/chart");
 
-  useEffect(() => {
-    (async() => {
-      const infoData = await(await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)).json();
-      setInfo(infoData);
-      const priceData = await(await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)).json();
-      setPrice(priceData);
-      setLoading(false);
-    })();
-}, [coinId]);
+  const {isLoading: infoLoading, data: infoData } = useQuery<IInfo>(["info", coinId], () => fetchInfo(coinId));
+  const {isLoading: priceLoading, data: priceData } = useQuery<IPrice>(["price",coinId], () => fetchPrice(coinId), {refetchInterval: 5000});
+  //이름 겹치지 않게 다시 설정, 어차피 query-key는 배열에 담겨서 배열로 선언하고, 이름 겹치지 않게 key2개 넣은 것, 인자 넘겨야 돼서 익명함수로 호출
+  const loading = infoLoading || priceLoading;
 
 return (
   <Container>
+    <Helmet>
+      <title>
+        {coinId}
+      </title>
+    </Helmet>
     <Header>
       <Title>
-        {state?.name ? state.name : loading ? "Loading..." : info?.name}
+        {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
       </Title>
     </Header>
     {loading ? (
@@ -180,26 +177,26 @@ return (
         <Overview>
           <OverviewItem>
             <span>Rank:</span>
-            <span>{info?.rank}</span>
+            <span>{infoData?.rank}</span>
           </OverviewItem>
           <OverviewItem>
             <span>Symbol:</span>
-            <span>${info?.symbol}</span>
+            <span>${infoData?.symbol}</span>
           </OverviewItem>
           <OverviewItem>
-            <span>Open Source:</span>
-            <span>{info?.open_source ? "Yes" : "No"}</span>
+            <span>Price:</span>
+            <span>${priceData?.quotes.USD.price.toFixed(3)}</span>
           </OverviewItem>
         </Overview>
-        <Description>{info?.description}</Description>
+        <Description>{infoData?.description}</Description>
         <Overview>
           <OverviewItem>
             <span>Total Suply:</span>
-            <span>{price?.total_supply}</span>
+            <span>{priceData?.total_supply}</span>
           </OverviewItem>
           <OverviewItem>
             <span>Max Supply:</span>
-            <span>{price?.max_supply}</span>
+            <span>{priceData?.max_supply}</span>
           </OverviewItem>
         </Overview>
 
@@ -217,7 +214,7 @@ return (
             <Price/>
           </Route>
           <Route path={"/:coinId/chart"}>
-            <Chart/>
+            <Chart coinId={coinId}/>
           </Route>
         </Switch>
       </>
