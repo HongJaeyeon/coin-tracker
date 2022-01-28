@@ -1,6 +1,11 @@
 import { createGlobalStyle } from "styled-components";
 import { ReactQueryDevtools } from "react-query/devtools";
 import Router from "./Router";
+import { useRecoilValue } from "recoil";
+import { isDarkAtom } from "./router/atoms";
+import { ThemeProvider } from "styled-components";
+import { lightTheme, darkTheme } from "./theme"
+
 const GlobalStyle = createGlobalStyle`
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,11 +69,14 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 function App() {
+  const isDark = useRecoilValue(isDarkAtom);
   return (
     <>
-      <GlobalStyle/>
-      <Router/>
-      <ReactQueryDevtools initialIsOpen={true} />
+      <ThemeProvider theme={ isDark ? darkTheme : lightTheme }>
+        <GlobalStyle/>
+        <Router/>
+        <ReactQueryDevtools initialIsOpen={true} />
+      </ThemeProvider>
     </>
     //fragment 고스트 컴포넌트. div같은 불필요한 태그 없이 두개를 동시에 return할 수 있다
   );

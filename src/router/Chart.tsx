@@ -1,6 +1,8 @@
 import ApexChart from "react-apexcharts";
 import { useQuery } from "react-query";
+import { useRecoilValue } from "recoil";
 import { fetchChart } from "../api";
+import { isDarkAtom } from "./atoms";
 
 interface IChart{
   coinId: string;
@@ -19,20 +21,34 @@ interface IData{
 
 function Chart({coinId}:IChart){
   const {isLoading, data} = useQuery<IData[]>("ohlcv", ()=>fetchChart(coinId), {refetchInterval: 10000});
+  const isDark = useRecoilValue(isDarkAtom);
   return(
     <div>
       {isLoading ? ("loading...") : (<ApexChart 
-      type="line" 
+      type="candlestick"
+      // series={[
+        // {
+        //   data: [
+        //     {
+        //       x: data?.map(price => price.time_open),
+        //       y: data?.map(price => (price.open, price.high, price.low, price.close))
+        //     }
+        // ]
+      //   },
+      // ]}
       series={[
         {
           name: "Price",
-          data: data?.map(price => price.close),
+          data: data?.map((price) => ({
+            x: price.time_close,
+            y: [price.open, price.high, price.low, price.close],
+          })),
         },
       ]}
 
       options={{
         theme:{
-          mode:"dark",
+          mode: isDark ? "dark" : "light",
         },
 
         chart: {
@@ -54,9 +70,9 @@ function Chart({coinId}:IChart){
           show: false,
         },
         xaxis:{
-          axisBorder: { show: false },
-          axisTicks: { show: false },
-          labels: { show: false },
+          // axisBorder: { show: false },
+          // axisTicks: { show: false },
+          // // labels: { show: false },
           type: "datetime",
           categories: data?.map((price) => price.time_close),
         },
@@ -71,7 +87,6 @@ function Chart({coinId}:IChart){
           },
         }
       }}
-
         />
       )
     }

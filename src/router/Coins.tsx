@@ -1,8 +1,10 @@
 import { Helmet } from "react-helmet";
 import { useQuery } from "react-query";
 import { Link } from "react-router-dom";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import styled from "styled-components";
 import { fetchCoins } from "../api";
+import { isDarkAtom } from "./atoms";
 
 function Coins(){
 
@@ -55,9 +57,23 @@ function Coins(){
   `;
 
   const Img = styled.img`
-      background-color: #55c1e8;
+      background-color: ${(props)=> props.theme.pointColor};
       width: 35px;
       margin-right: 15px;
+  `;
+
+  const Btn = styled.button`
+      border: none;
+      padding: 3px;
+      border-radius: 5px;
+      font-weight: 600;
+      background-color: ${(props)=> props.theme.accentColor};
+  `;
+
+  const Cover = styled.div`
+      margin: 30px auto 0 auto;
+      max-width: 500px;
+      text-align: right;
   `;
 
   interface ICoin {
@@ -67,7 +83,9 @@ function Coins(){
   };
 
   const {isLoading, data} = useQuery<ICoin[]>("allCoins",fetchCoins);
-
+  const setDarkAtom = useSetRecoilState(isDarkAtom);
+  const onClick = () => {setDarkAtom(current => !current);};
+  const isDark = useRecoilValue(isDarkAtom);
   return(
     <Container>
       <Helmet>
@@ -75,6 +93,10 @@ function Coins(){
         Coins
       </title>
     </Helmet>
+    <Cover>
+      <Btn onClick={onClick}>{isDark ? "LightMode" : "DarkMode"}</Btn>
+    </Cover>
+    
       <Header>
         <Title>
           Coins

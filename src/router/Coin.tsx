@@ -82,6 +82,11 @@ const Tab = styled.span<{ isActive: boolean }>`
   }
 `;
 
+const Back = styled.button`
+  font-size: 35px;
+  border: none;
+`;
+
 interface ParamsInterface{
   coinId: string;
 }
@@ -165,6 +170,7 @@ return (
         {coinId}
       </title>
     </Helmet>
+    <Back><Link to="/">←</Link></Back>
     <Header>
       <Title>
         {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
@@ -211,7 +217,7 @@ return (
 
         <Switch>
           <Route path={"/:coinId/price"}>
-            <Price/>
+            <Price coinId={coinId}/>
           </Route>
           <Route path={"/:coinId/chart"}>
             <Chart coinId={coinId}/>
